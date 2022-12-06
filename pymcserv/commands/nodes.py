@@ -66,7 +66,7 @@ class ArgumentCommandNode(Node):
         for child in self.children:
             c[len(c)]=(child.as_dict())    
         return {
-            "type": "argumenet",
+            "type": "argument",
             "executable": self.executable,
             "redirect": self.redirect,
             "suggestions": self.suggestions,
