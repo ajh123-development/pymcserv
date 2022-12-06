@@ -6,6 +6,7 @@ from quarry.types.uuid import UUID
 from quarry.data.data_packs import data_packs, dimension_types
 
 from pymcserv.protocols.play import *
+from pymcserv.commands import commands
 
 
 class PyMcServFactory(ServerFactory):
@@ -63,6 +64,9 @@ class PyMcServFactory(ServerFactory):
         player.send_packet("plugin_message", 
             player.buff_type.pack_string("minecraft:brand"),
             player.buff_type.pack_string("pymcserv")
+        )
+        player.send_packet("declare_commands", 
+            player.buff_type.pack_commands(commands.getRootCommandNode().as_dict())
         )
 
     # Sends a signed chat message to supporting clients
