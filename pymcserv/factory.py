@@ -5,11 +5,11 @@ from quarry.types.chat import SignedMessage, LastSeenMessage
 from quarry.types.uuid import UUID
 from quarry.data.data_packs import data_packs, dimension_types
 
-from pymcserv.protocol import *
+from pymcserv.protocols.play import *
 
 
-class ChatRoomFactory(ServerFactory):
-    protocol = ChatRoomProtocol
+class PyMcServFactory(ServerFactory):
+    protocol = PyMcServProtocol
     motd = "Chat Room Server"
 
     def send_join_game(self, player):
@@ -60,6 +60,10 @@ class ChatRoomFactory(ServerFactory):
 
         # Send "Join Game" packet
         player.send_packet("join_game", *join_game)
+        player.send_packet("plugin_message", 
+            player.buff_type.pack_string("minecraft:brand"),
+            player.buff_type.pack_string("pymcserv")
+        )
 
     # Sends a signed chat message to supporting clients
     def broadcast_signed_chat(self, message: SignedMessage, sender_name):
@@ -73,7 +77,7 @@ class ChatRoomFactory(ServerFactory):
             else:
                 self.send_unsigned_chat(player, message.body.message, message.header.sender, sender_name)
 
-    def send_signed_chat(self, player: ChatRoomProtocol, message: SignedMessage, sender_name):
+    def send_signed_chat(self, player: PyMcServProtocol, message: SignedMessage, sender_name):
         # Add to player's pending messages for later last seen validation
         if self.online_mode:
             player.pending_messages.append(LastSeenMessage(message.header.sender, message.signature))
@@ -109,7 +113,7 @@ class ChatRoomFactory(ServerFactory):
 
             self.send_unsigned_chat(player, message, sender, sender_name)
 
-    def send_unsigned_chat(self, player: ChatRoomProtocol, message: str, sender: UUID, sender_name: str):
+    def send_unsigned_chat(self, player: PyMcServProtocol, message: str, sender: UUID, sender_name: str):
         # 1.19+ Send as system message to avoid client signature warnings
         if player.protocol_version >= 759:
             self.send_system(player, "<%s> %s" % (sender_name, message))
@@ -128,7 +132,7 @@ class ChatRoomFactory(ServerFactory):
             self.send_system(player, message)
 
     @staticmethod
-    def send_system(player: ChatRoomProtocol, message: str):
+    def send_system(player: PyMcServProtocol, message: str):
         if player.protocol_version >= 760:  # 1.19.1+
             player.send_packet("system_message",
                                player.buff_type.pack_chat(message),
@@ -144,24 +148,24 @@ class ChatRoomFactory(ServerFactory):
                                player.buff_type.pack_uuid(UUID(int=0)))
 
     # Announces player join
-    def broadcast_player_join(self, joined: ChatRoomProtocol):
+    def broadcast_player_join(self, joined: PyMcServProtocol):
         self.broadcast_system("\u00a7e%s has joined." % joined.display_name)
         self.broadcast_player_list_add(joined)
 
     # Announces player leave
-    def broadcast_player_leave(self, left: ChatRoomProtocol):
+    def broadcast_player_leave(self, left: PyMcServProtocol):
         self.broadcast_system("\u00a7e%s has left." % left.display_name)
         self.broadcast_player_list_remove(left)
 
     # Sends player list entry for new player to other players
-    def broadcast_player_list_add(self, added: ChatRoomProtocol):
+    def broadcast_player_list_add(self, added: PyMcServProtocol):
         for player in self.players:
             # Exclude the added player, they will be sent the full player list separately
             if player.protocol_mode == 'play' and player != added:
                 self.send_player_list_add(player, [added])
 
     @staticmethod
-    def send_player_list_add(player: ChatRoomProtocol, added: List[ChatRoomProtocol]):
+    def send_player_list_add(player: PyMcServProtocol, added: List[PyMcServProtocol]):
         data = [
             player.buff_type.pack_varint(0),  # Action - 0 = Player add
             player.buff_type.pack_varint(len(added)),  # Player entry count
@@ -185,7 +189,7 @@ class ChatRoomFactory(ServerFactory):
         player.send_packet('player_list_item', *data)
 
     # Sends player list update for leaving player to other players
-    def broadcast_player_list_remove(self, removed: ChatRoomProtocol):
+    def broadcast_player_list_remove(self, removed: PyMcServProtocol):
         for player in self.players:
             if player.protocol_mode == 'play' and player != removed:
                 player.send_packet('player_list_item',

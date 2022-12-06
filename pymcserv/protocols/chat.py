@@ -5,7 +5,7 @@ from quarry.net.server import ServerProtocol
 from quarry.types.chat import SignedMessage, SignedMessageHeader, SignedMessageBody, Message, LastSeenMessage
 
 
-class ChatRoomProtocol(ServerProtocol):
+class ChatProtocol(ServerProtocol):
     previous_timestamp = 0  # Timestamp of last chat message sent by the client, used for out-of-order chat checking
     previous_signature = None  # Signature of the last chat message sent by the client, used as part of the next message's signature
     pending_messages = []  # Chat messages pending acknowledgement by the client

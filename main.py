@@ -13,7 +13,7 @@ def main(argv):
     args = parser.parse_args(argv)
 
     # Create factory
-    factory = ChatRoomFactory()
+    factory = PyMcServFactory()
 
     factory.online_mode = not args.offline
 
