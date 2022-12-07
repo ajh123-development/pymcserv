@@ -59,7 +59,7 @@ class ArgumentCommandNode(Node):
         super().__init__()
         self.parser: str = ""
         self.properties: Dict = {}
-        self.suggestions: str = ""
+        self.suggestions: str = "ask_server"
 
     def as_dict(self):
         c = {}
