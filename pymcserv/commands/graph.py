@@ -11,7 +11,7 @@ def getRootCommandNode() -> RootCommandNode :
     testCommandArg1.executable = True
     testCommandArg1.parser = "brigadier:string"
     testCommandArg1.properties = {"behavior": 1}
-    testCommandArg1.suggestions = "\"qwerty asdfg\""
+    testCommandArg1.suggestions = ""
     testCommand.children.append(testCommandArg1)
 
     node = RootCommandNode()

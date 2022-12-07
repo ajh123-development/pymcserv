@@ -1,8 +1,15 @@
+from __future__ import annotations
 from typing import List
 import sys
 
 from quarry.net.server import ServerProtocol
 from quarry.types.chat import SignedMessage, SignedMessageHeader, SignedMessageBody, Message, LastSeenMessage
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from quarry.types.buffer import Buffer1_19_1
+    from quarry.net.ticker import Ticker
+    from ..factory import PyMcServFactory
+
 
 
 class ChatProtocol(ServerProtocol):
@@ -10,6 +17,9 @@ class ChatProtocol(ServerProtocol):
     previous_signature = None  # Signature of the last chat message sent by the client, used as part of the next message's signature
     pending_messages = []  # Chat messages pending acknowledgement by the client
     previously_seen = []  # Chat messages acknowledged by the client in the last chat message
+    buff_type: Buffer1_19_1 = None
+    factory: PyMcServFactory = None
+    ticker: Ticker = None
 
     def player_joined(self):
         # Call super. This switches us to "play" mode, marks the player as
@@ -62,7 +72,7 @@ class ChatProtocol(ServerProtocol):
         # Send a "Keep Alive" packet
         self.send_packet("keep_alive", self.buff_type.pack('Q', 0))
 
-    def packet_chat_message(self, buff):
+    def packet_chat_message(self, buff: Buffer1_19_1):
         if self.protocol_mode != 'play':
             return
 

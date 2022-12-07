@@ -1,19 +1,20 @@
-from typing import List
+from typing import List, Set
 
 from quarry.net.server import ServerFactory
 from quarry.types.chat import SignedMessage, LastSeenMessage
 from quarry.types.uuid import UUID
 from quarry.data.data_packs import data_packs, dimension_types
 
-from pymcserv.protocols.play import *
-from pymcserv.commands import graph
+from pymcserv.protocols.play import PyMcServProtocol
+from pymcserv.commands import graph, parsers
 
 
 class PyMcServFactory(ServerFactory):
     protocol = PyMcServProtocol
     motd = "Chat Room Server"
+    players: Set[PyMcServProtocol] = None
 
-    def send_join_game(self, player):
+    def send_join_game(self, player: PyMcServProtocol):
         # Build up fields for "Join Game" packet
         entity_id = 0
         max_players = 0
@@ -66,7 +67,7 @@ class PyMcServFactory(ServerFactory):
             player.buff_type.pack_string("pymcserv")
         )
         player.send_packet("declare_commands", 
-            player.buff_type.pack_commands(graph.getRootCommandNode().as_dict())
+            parsers.pack_commands(player.buff_type, graph.getRootCommandNode().as_dict())
         )
 
     # Sends a signed chat message to supporting clients
